@@ -1,1 +1,1 @@
-Những thứ cần thiết note vào file này
+Note nhung thu quan trong vao day
