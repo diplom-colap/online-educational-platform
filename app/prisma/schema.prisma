@@ -19,6 +19,7 @@ model User {
   comments Comment[]
   createAt DateTime  @default(now())
   updateAt DateTime  @default(now())
+  Course   Course[]
 }
 
 model Course {
@@ -26,6 +27,8 @@ model Course {
   name        String
   description String?
   Lesson      Lesson[]
+  teacherId   String
+  teacher     User     @relation(fields: [teacherId], references: [id])
   createAt    DateTime @default(now())
   updateAt    DateTime @default(now())
 }
