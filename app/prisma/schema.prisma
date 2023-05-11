@@ -92,7 +92,6 @@ model Material {
 }
 
 enum Role {
-  ADMIN
   LEARNER
   TEACHER
 }
