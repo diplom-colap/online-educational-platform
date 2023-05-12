@@ -7,6 +7,7 @@ import { env } from 'process';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import supertokens from 'supertokens-node';
 import { SupertokensExceptionFilter } from './auth/auth.filter';
+import { DataGenerator } from './generate-Data';
 
 dotenv.config();
 
@@ -30,6 +31,9 @@ async function bootstrap() {
   });
   
   await app.listen(env.PORT);
+  
+  const generator = new DataGenerator();
+  generator.generateData();
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

@@ -2,12 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import supertokens from "supertokens-node";
 import Session from 'supertokens-node/recipe/session';
 import ThirdPartyEmailPassword from 'supertokens-node/recipe/thirdpartyemailpassword';
-import EmailPassword from 'supertokens-node/recipe/emailpassword';
-
+import UserRoles from 'supertokens-node/recipe/userroles';
 import { ConfigInjectionToken, AuthModuleConfig } from "../config.interface";
 import { UsersService } from 'src/users/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { Role, SocialProvider } from '@prisma/client';
 
 @Injectable()
 export class SupertokensService {
@@ -21,61 +19,7 @@ export class SupertokensService {
                 apiKey: config.apiKey,
             },
             recipeList: [
-                // EmailPassword.init({
-                //     signUpFeature: {
-                //         formFields: 
-                //         [
-                //             {
-                //                 id: "name"
-                //             }, 
-                //             {
-                //                 id: "phone"
-                //             }, 
-                //             {
-                //                 id: "role"
-                //             }
-                //         ]
-                //     },
-                //     override: {
-                //         apis: (originalImplementation) => {
-                //             return {
-                //                 ...originalImplementation,
-                //                 signUpPOST: async function (input) {
-        
-                //                     if (originalImplementation.signUpPOST === undefined) {
-                //                         throw Error("Should never come here");
-                //                     }
-        
-                //                     // First we call the original implementation of signUpPOST.
-                //                     let response = await originalImplementation.signUpPOST(input);
-        
-                //                     // Post sign up response, we check if it was successful
-                //                     if (response.status === "OK") {
-                //                         let { id, email } = response.user;
-        
-                //                         // // These are the input form fields values that the user used while signing up
-                //                         let formFields = input.formFields;
-                //                         // TODO: post sign up logic
-                //                         // save user to my own database
-                //                         var newUser = new CreateUserDto();
-                //                         newUser.idOnSP = id;
-                //                         newUser.email = email;
-                //                         newUser.password = formFields[1]['value'];
-                //                         newUser.name = formFields[2]['value'];
-                //                         newUser.phone = formFields[3]['value'];
-                //                         newUser.socialProvider = null;
-                //                         if ( formFields[4]['value'] == "teacher")
-                //                         {
-                //                             newUser.role = Role.TEACHER
-                //                         }
-                //                         usersService.create(newUser);
-                //                     }
-                //                     return response;
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }),
+                UserRoles.init(),
                 ThirdPartyEmailPassword.init({
                     signUpFeature: {
                         formFields: 
@@ -103,26 +47,36 @@ export class SupertokensService {
         
                                     // First we call the original implementation of signUpPOST.
                                     let response = await originalImplementation.emailPasswordSignUpPOST(input);
-        
                                     // Post sign up response, we check if it was successful
                                     if (response.status === "OK") {
                                         let { id, email } = response.user;
         
                                         // // These are the input form fields values that the user used while signing up
                                         let formFields = input.formFields;
+                                        const role_res = await UserRoles.addRoleToUser(id,  formFields[4]['value']);
+
+                                        if (role_res.status === "UNKNOWN_ROLE_ERROR") {
+                                            // No such role exists
+                                            console.log("No such role exists");
+                                            return;
+                                        }
+
+                                        if (role_res.didUserAlreadyHaveRole === true) {
+                                            // The user already had the role
+                                            console.log("The user already had the role");
+                                        }                                       
+
                                         // TODO: post sign up logic
                                         // save user to my own database
                                         var newUser = new CreateUserDto();
-                                        newUser.idOnSP = id;
+                                        newUser.id = id;
                                         newUser.email = email;
                                         newUser.password = formFields[1]['value'];
                                         newUser.name = formFields[2]['value'];
                                         newUser.phone = formFields[3]['value'];
                                         newUser.socialProvider = null;
-                                        if ( formFields[4]['value'] == "teacher")
-                                        {
-                                            newUser.role = Role.TEACHER
-                                        }
+                                        newUser.role = formFields[4]['value']
+                                        
                                         usersService.create(newUser);
                                     }
                                     return response;
@@ -136,29 +90,14 @@ export class SupertokensService {
         
                                     if (response.status === "OK") {
                                         let { id, email } = response.user;
-                                        // let formFields = input.formFields;
                                         let thirdPartyAuthCodeResponse = response.authCodeResponse;
 
                                         if (response.createdNewUser) {
-                                            // TODO: Post sign up logic
-                                            // save user to my own database
-                                            // var newUser = new CreateUserDto();
-                                            // newUser.idOnSP = id;
-                                            // newUser.email = email;
-                                            // newUser.password = formFields[1]['value'];
-                                            // newUser.name = formFields[2]['value'];
-                                            // newUser.phone = formFields[3]['value'];
-                                            // newUser.socialProvider = SocialProvider.GOOGLE;
-                                            // if ( formFields[4]['value'] == "teacher")
-                                            // {
-                                            //     newUser.role = Role.TEACHER
-                                            // }
-                                            // usersService.create(newUser);
+                                        
                                         } else {
                                             // TODO: some post sign in logic
                                         }                                  
                                     }
-                                    console.log("id party: " + input.clientId)
                                     return response;
                                 }
                             }
@@ -184,10 +123,6 @@ export class SupertokensService {
                               teamId: "YWQCXGJRJL",
                           },
                         }),
-                        // ThirdParty.Facebook({
-                        //    clientSecret: "FACEBOOK_CLIENT_SECRET",
-                        //    clientId: "FACEBOOK_CLIENT_ID"
-                        // })
                     ]
                 }),
               Session.init({

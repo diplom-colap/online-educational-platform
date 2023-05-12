@@ -11,13 +11,12 @@ datasource db {
 }
 
 model User {
-  id             String          @id @default(uuid())
-  idOnSP         String
+  id             String          @id @unique
   email          String          @unique
   password       String
   name           String
   phone          String?
-  role           Role            @default(LEARNER)
+  role           String
   socialProvider SocialProvider?
   comments       Comment[]
   Course         Course[]
@@ -91,11 +90,6 @@ model Material {
   lesson   Lesson   @relation(fields: [lessonId], references: [id])
   createAt DateTime @default(now())
   updateAt DateTime @default(now())
-}
-
-enum Role {
-  LEARNER
-  TEACHER
 }
 
 enum SocialProvider {

@@ -1,13 +1,15 @@
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('ADMIN', 'LEARNER', 'TEACHER');
+CREATE TYPE "SocialProvider" AS ENUM ('APPLE', 'GOOGLE', 'GITHUB');
 
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "phone" TEXT,
-    "role" "Role" NOT NULL DEFAULT 'LEARNER',
+    "role" TEXT NOT NULL,
+    "socialProvider" "SocialProvider",
     "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -19,6 +21,7 @@ CREATE TABLE "Course" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
+    "teacherId" TEXT NOT NULL,
     "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -92,6 +95,9 @@ CREATE TABLE "_CommentToComment" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_id_key" ON "User"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
@@ -99,6 +105,9 @@ CREATE UNIQUE INDEX "_CommentToComment_AB_unique" ON "_CommentToComment"("A", "B
 
 -- CreateIndex
 CREATE INDEX "_CommentToComment_B_index" ON "_CommentToComment"("B");
+
+-- AddForeignKey
+ALTER TABLE "Course" ADD CONSTRAINT "Course_teacherId_fkey" FOREIGN KEY ("teacherId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -1,10 +1,9 @@
-import { Controller, Get, Session, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
 import { AuthGuard } from './auth/auth.guard';
-import { SessionContainer } from 'supertokens-node/recipe/session';
-import { Role } from '@prisma/client';
-import { Roles } from './auth/roles.decorator';
-import { RolesGuard } from './auth/roles.guard';
+import { SessionClaimValidator, SessionContainer } from 'supertokens-node/recipe/session';
+import UserRoles from "supertokens-node/recipe/userroles";
+import { Session } from './auth/session/session.decorator';
 
 @Controller()
 export class AppController {
@@ -16,12 +15,16 @@ export class AppController {
   }
 
   @Get('test')
-  @Roles(Role.LEARNER)
-  @UseGuards(new AuthGuard())
-
-  @UseGuards()
+  @UseGuards(new AuthGuard({
+    overrideGlobalClaimValidators: async (globalValidators: SessionClaimValidator[]) => ([
+        ...globalValidators, 
+        UserRoles.UserRoleClaim.validators.includes("admin"),
+    ])
+  }))
   async getTest(@Session() session: SessionContainer): Promise<string> {
     // TODO: magic
+    const userID = session.getUserId();
+    console.log(userID);
     return "magic";
   }
 }

@@ -10,8 +10,6 @@ import { VideosModule } from './videos/videos.module';
 import { MaterialsModule } from './materials/materials.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from './auth/roles.guard';
 
 @Module({
   imports: [PrismaModule, CoursesModule, LessonsModule, QuizzesModule, CommentsModule, VideosModule, MaterialsModule, UsersModule,
@@ -29,11 +27,6 @@ import { RolesGuard } from './auth/roles.guard';
       },
     }),],
   controllers: [AppController],
-  providers: [AppService,
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
-  ],
+  providers: [AppService],
 })
 export class AppModule {}
