@@ -14,5 +14,10 @@ export class CreateQuizDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  url: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
   lessonId: string;
 }

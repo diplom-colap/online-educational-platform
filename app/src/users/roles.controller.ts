@@ -1,25 +1,24 @@
 import {
   Controller,
   Get,
-  Body,
-  Patch,
+  Post,
   Param,
   Delete,
   UseGuards,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import UserRoles from 'supertokens-node/recipe/userroles';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { SessionClaimValidator } from 'supertokens-node/recipe/session';
+import { RolesService } from './roles.service';
+import UserRoles from 'supertokens-node/recipe/userroles';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { SessionClaimValidator } from 'supertokens-node/recipe/session';
 
-@Controller('users')
-@ApiTags('users')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+@Controller('roles')
+@ApiTags('roles')
+export class RolesController {
+  constructor(private readonly roleService: RolesService) {}
 
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: 'Create a Role' })
+  @Post(':roleName')
   @UseGuards(
     new AuthGuard({
       overrideGlobalClaimValidators: async (
@@ -30,13 +29,28 @@ export class UsersController {
       ],
     }),
   )
+  async createRole(@Param('roleName') roleName: string) {
+    return await this.roleService.createRole(roleName);
+  }
+
+  @ApiOperation({ summary: 'Get users that have role' })
+  @Get(':roleName')
+  @UseGuards(
+    new AuthGuard({
+      overrideGlobalClaimValidators: async (
+        globalValidators: SessionClaimValidator[],
+      ) => [
+        ...globalValidators,
+        UserRoles.UserRoleClaim.validators.includes('admin'),
+      ],
+    }),
+  )
+  async getUsersThatHaveRole(@Param('roleName') roleName: string) {
+    return await this.roleService.getUsersOnSPThatHaveRole(roleName);
+  }
+
+  @ApiOperation({ summary: 'Get all role' })
   @Get()
-  async findAll() {
-    return await this.usersService.findAll();
-  }
-
-  @ApiOperation({ summary: 'Find user by Id' })
-  @Get(':id')
   @UseGuards(
     new AuthGuard({
       overrideGlobalClaimValidators: async (
@@ -47,12 +61,12 @@ export class UsersController {
       ],
     }),
   )
-  async findOne(@Param('id') id: string) {
-    return await this.usersService.findOne(id);
+  async getAllRoleOnSP() {
+    return await this.roleService.getAllRoles();
   }
 
-  @ApiOperation({ summary: 'Update user by Id' })
-  @Patch(':id')
+  @ApiOperation({ summary: 'Delete role' })
+  @Delete(':roleName')
   @UseGuards(
     new AuthGuard({
       overrideGlobalClaimValidators: async (
@@ -63,23 +77,7 @@ export class UsersController {
       ],
     }),
   )
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return await this.usersService.update(id, updateUserDto);
-  }
-
-  @ApiOperation({ summary: 'Delete user by Id' })
-  @Delete(':id')
-  @UseGuards(
-    new AuthGuard({
-      overrideGlobalClaimValidators: async (
-        globalValidators: SessionClaimValidator[],
-      ) => [
-        ...globalValidators,
-        UserRoles.UserRoleClaim.validators.includes('admin'),
-      ],
-    }),
-  )
-  async remove(@Param('id') id: string) {
-    return await this.usersService.remove(id);
+  async deleteRole(@Param('roleName') roleName: string) {
+    return await this.roleService.deleteRole(roleName);
   }
 }

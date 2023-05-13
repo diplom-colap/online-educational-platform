@@ -2,6 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+// import UserRoles, {
+//   PermissionClaim,
+//   UserRoleClaim,
+// } from 'supertokens-node/recipe/userroles';
+// import { SessionContainer } from 'supertokens-node/recipe/session';
+import { deleteUser } from 'supertokens-node';
 
 @Injectable()
 export class UsersService {
@@ -31,6 +37,7 @@ export class UsersService {
   }
 
   async remove(id: string) {
+    await deleteUser(id);
     return await this.prismaService.user.delete({ where: { id } });
   }
 }
