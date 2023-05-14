@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  password       String?
+  name           String
+  phone          String?
+  role           String
+  socialProvider SocialProvider?
+  comments       Comment[]
+  createAt       DateTime        @default(now())
+  updateAt       DateTime        @default(now())
+  UserAndCourse  UserAndCourse[]
+}
+
+model Course {
+  id            String          @id @default(uuid())
+  name          String
+  description   String?
+  Lesson        Lesson[]
+  UserAndCourse UserAndCourse[]
+  createAt      DateTime        @default(now())
+  updateAt      DateTime        @default(now())
+}
+
+model UserAndCourse {
+  id       String   @id @default(uuid())
+  user     User     @relation(fields: [userId], references: [id])
+  userId   String
+  course   Course   @relation(fields: [courseId], references: [id])
+  courseId String
+  createAt DateTime @default(now())
+  updateAt DateTime @default(now())
+}
+
+model Lesson {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  course      Course     @relation(fields: [courseId], references: [id])
+  courseId    String
+  comment     Comment[]
+  quizz       Quizz[]
+  materials   Material[]
+  createAt    DateTime   @default(now())
+  updateAt    DateTime   @default(now())
+}
+
+model Material {
+  id       String   @id @default(uuid())
+  name     String
+  url      String
+  lesson   Lesson   @relation(fields: [lessonId], references: [id])
+  lessonId String
+  createAt DateTime @default(now())
+  updateAt DateTime @default(now())
+}
+
+model Quizz {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  url         String
+  Lesson      Lesson   @relation(fields: [lessonId], references: [id])
+  lessonId    String
+  createAt    DateTime @default(now())
+  updateAt    DateTime @default(now())
+}
+
+model Comment {
+  id               String    @id @default(uuid())
+  comments         Comment[] @relation("CommentToComment")
+  commentsRelation Comment[] @relation("CommentToComment")
+  user             User      @relation(fields: [userId], references: [id])
+  userId           String
+  lesson           Lesson    @relation(fields: [lessonId], references: [id])
+  lessonId         String
+  content          String
+  createAt         DateTime  @default(now())
+  updateAt         DateTime  @default(now())
+}
+
+enum SocialProvider {
+  APPLE
+  GOOGLE
+  GITHUB
+}
